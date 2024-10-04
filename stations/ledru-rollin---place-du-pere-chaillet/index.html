@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>VelibTracker - Ledru-Rollin - Place du Père Chaillet</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS for map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Fix for Leaflet map container height */
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Navigation bar -->
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <nav class="flex justify-between items-center container mx-auto">
+            <h1 class="text-2xl font-bold"><a href="/">VelibTracker</a></h1>
+            <ul class="flex space-x-4">
+                <li><a href="mailto:velibtracker@pierrebrocart.com" class="hover:text-gray-200">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Station name -->
+    <div class="bg-blue-100 p-4 text-center">
+        <h2 class="text-xl font-semibold">Station: Ledru-Rollin - Place du Père Chaillet</h2>
+    </div>
+
+    <!-- Content layout (table + map) -->
+    <main class="container mx-auto p-4">
+        <section class="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
+            <!-- Table for dock and bike data -->
+            <div class="w-full lg:w-1/2 bg-white p-4 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">Dock and Bike Data</h2>
+                <table id="bikeTable" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg text-left">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="py-2 px-4 border-b">Dock Number</th>
+                            <th class="py-2 px-4 border-b">Bike Number</th>
+                            <th class="py-2 px-4 border-b">Bike Type</th>
+                            <th class="py-2 px-4 border-b">Bike Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Map section -->
+            <div class="w-full lg:w-1/2 bg-white p-4 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">Station Map</h2>
+                <div id="map" class="rounded-lg shadow-lg"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Leaflet JS for map -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Set up the map with latitude and longitude
+        const latitude = 48.856433706943704;
+        const longitude = 2.379020587761426;
+
+        // Initialize the map
+        const map = L.map('map').setView([latitude, longitude], 13);
+
+        // Use CartoDB Positron for a clean, modern, monochromatic map style
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Example marker at the station's coordinates
+        const marker = L.marker([latitude, longitude]).addTo(map);
+        marker.bindPopup("<b>Ledru-Rollin - Place du Père Chaillet</b>").openPopup();
+
+        // On page load, make API request and parse the JSON
+        window.addEventListener("load", () => {
+            const url = "https://www.velib-metropole.fr/api/secured/searchStation";
+            const headers = {
+                "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
+                "authorization": "Basic bW9iaTokMnkkMTAkdzNVN3RaS29XVWJsZW1nUHBoQU9JZXdzejVGeWRralNHekdscFpId3drM1pSZUtKVTRDVy4=",
+                "Content-Type": "application/json; charset=utf-8"
+            };
+            const payload = {
+                "stationName": "Ledru-Rollin - Place du Père Chaillet",
+                "disponibility": "yes"
+            };
+    
+            fetch(url, {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data); // Print response data to console
+    
+                const stationData = data[0];
+                const bikes = stationData.bikes;
+    
+                const electricBikes = bikes.filter(bike => bike.bikeElectric === "yes");
+                const nonElectricBikes = bikes.filter(bike => bike.bikeElectric === "no");
+    
+                electricBikes.sort((a, b) => b.bikeRate - a.bikeRate);
+                nonElectricBikes.sort((a, b) => b.bikeRate - a.bikeRate);
+    
+                const sortedBikes = [...electricBikes, ...nonElectricBikes];
+    
+                const tableBody = document.querySelector("#bikeTable tbody");
+    
+                sortedBikes.forEach(bike => {
+                    const row = document.createElement("tr");
+    
+                    const dockNumberCell = document.createElement("td");
+                    dockNumberCell.className = "py-2 px-4 border-b";
+                    dockNumberCell.textContent = bike.dockPosition;
+    
+                    const bikeNumberCell = document.createElement("td");
+                    bikeNumberCell.className = "py-2 px-4 border-b";
+                    bikeNumberCell.textContent = bike.bikeName;
+    
+                    const bikeTypeCell = document.createElement("td");
+                    bikeTypeCell.className = "py-2 px-4 border-b";
+                    bikeTypeCell.textContent = bike.bikeElectric === "yes" ? "⚡️" : "";
+    
+                    const bikeRateCell = document.createElement("td");
+                    bikeRateCell.className = "py-2 px-4 border-b";
+                    bikeRateCell.textContent = "★".repeat(bike.bikeRate);
+    
+                    row.appendChild(dockNumberCell);
+                    row.appendChild(bikeNumberCell);
+                    row.appendChild(bikeTypeCell);
+                    row.appendChild(bikeRateCell);
+    
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching station data:", error);
+            });
+        });
+    </script>
+
+</body>
+</html>
