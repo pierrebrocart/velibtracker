@@ -1,51 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>VelibTracker - Mauroy - Cheminots</title>
+    <title>Mauroy - Cheminots - VelibTracker - Station Vélib</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS for map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        /* Fix for Leaflet map container height */
         #map {
-            height: 400px;
+            height: 300px; /* or any value you prefer */
+            width: 100%;
+            min-height: 300px; /* Ensure there's always a minimum height */
         }
+
+        .masonry-layout {
+            column-count: 2;
+            column-gap: 1rem;
+        }
+        .masonry-item {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 1rem;
+            break-inside: avoid;
+        }
+        .masonry-item:first-child,
+        .masonry-item:nth-child(2) {
+            margin-top: 0;
+        }
+        
+        .stations-voisines-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .stations-voisines-table th,
+        .stations-voisines-table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: left;
+        }
+        .stations-voisines-table th:first-child,
+        .stations-voisines-table td:first-child {
+            width: 70%;
+        }
+        .stations-voisines-table th:not(:first-child),
+        .stations-voisines-table td:not(:first-child) {
+            width: 10%;
+            text-align: center;
+        }
+
+        .stations-voisines-table a {
+            text-decoration: underline;
+        }
+
+
+        @media (max-width: 768px) {
+            .masonry-layout {
+                column-count: 1;
+            }
+            /* Adjust for single column layout on small screens */
+            .masonry-item:nth-child(2) {
+                margin-top: 1rem;
+            }
+        }
+
+        @media not all and (min-resolution:.001dpcm) { 
+    @supports (-webkit-appearance:none) {
+        /* Safari-specific styles */
+        .masonry-item {
+            margin-top: 0 !important; /* Reset unwanted margin */
+        }
+    }
+}
+
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <!-- Navigation bar -->
     <header class="bg-blue-600 text-white p-4 shadow-md">
-        <nav class="flex justify-between items-center container mx-auto">
-            <h1 class="text-2xl font-bold"><a href="/">VelibTracker</a></h1>
+        <nav class="flex flex-col sm:flex-row justify-between items-center container mx-auto">
+            <h1 class="text-2xl font-bold mb-2 sm:mb-0"><a href="/">VelibTracker</a></h1>
             <ul class="flex space-x-4">
                 <li><a href="mailto:velibtracker@pierrebrocart.com" class="hover:text-gray-200">Contact</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- Station name -->
-    <div class="bg-blue-100 p-4 text-center">
-        <h2 class="text-xl font-semibold">Station: Mauroy - Cheminots</h2>
+    <!-- Station name aligned to the left -->
+    <div class="bg-blue-100 p-4">
+        <h2 class="text-xl font-semibold text-left container mx-auto">Mauroy - Cheminots</h2>
     </div>
 
-    <!-- Content layout (table + map) -->
+    <!-- Content layout (masonry) -->
     <main class="container mx-auto p-4">
-        <section class="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
-            <!-- Table for dock and bike data -->
-            <div class="w-full lg:w-1/2 bg-white p-4 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold mb-4">Dock and Bike Data</h2>
-                <table id="bikeTable" class="min-w-full bg-white border border-gray-200 rounded-lg shadow-lg text-left">
+        <div class="masonry-layout">
+            <div class="masonry-item bg-white p-4 rounded-lg shadow-lg overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4">Vélibs Disponibles</h2>
+                <table id="bikeTable" class="min-w-full bg-white border border-gray-200 rounded-lg text-left">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="py-2 px-4 border-b">Dock Number</th>
-                            <th class="py-2 px-4 border-b">Bike Number</th>
-                            <th class="py-2 px-4 border-b">Bike Type</th>
-                            <th class="py-2 px-4 border-b">Bike Rate</th>
+                            <th class="py-2 px-4 border-b">Dock</th>
+                            <th class="py-2 px-4 border-b">Vélo N°</th>
+                            <th class="py-2 px-4 border-b">Type</th>
+                            <th class="py-2 px-4 border-b">Note</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,12 +115,37 @@
                 </table>
             </div>
 
-            <!-- Map section -->
-            <div class="w-full lg:w-1/2 bg-white p-4 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold mb-4">Station Map</h2>
-                <div id="map" class="rounded-lg shadow-lg"></div>
+            <div id="chartContainer" class="masonry-item bg-white p-4 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">Journée moyenne de la station</h2>
+                <canvas id="bikeChart" style="width: 100%; height: 100%;"></canvas>
             </div>
-        </section>
+
+            <div class="masonry-item bg-white rounded-lg shadow-lg">
+                <div id="map" class="rounded-lg"></div>
+            </div>
+
+            <div class="masonry-item bg-white p-4 rounded-lg shadow-lg overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4">Stations voisines</h2>
+                <table class="stations-voisines-table">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>Distance (km)</th>
+                            <th>🚲</th>
+                            <th>⚡</th>
+                            <th>🅿️</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><a href='/stations/diane-arbus/index.html'>Diane Arbus</a></td><td>0.4</td><td>5</td><td>3</td><td>7</td></tr>
+<tr><td><a href='/stations/poissonniers-championnet/index.html'>Poissonniers - Championnet</a></td><td>0.4</td><td>5</td><td>3</td><td>7</td></tr>
+<tr><td><a href='/stations/station-paris-basketball-ney-charles-hermite/index.html'>Station Paris Basketball - Ney - Charles Hermite</a></td><td>0.5</td><td>5</td><td>3</td><td>7</td></tr>
+<tr><td><a href='/stations/tristan-tzara-tchaikovski/index.html'>Tristan Tzara -  Tchaïkovski</a></td><td>0.6</td><td>5</td><td>3</td><td>7</td></tr>
+<tr><td><a href='/stations/championnet/index.html'>Championnet.</a></td><td>0.6</td><td>5</td><td>3</td><td>7</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <!-- Leaflet JS for map -->
@@ -68,21 +154,80 @@
         // Set up the map with latitude and longitude
         const latitude = 48.897715198403;
         const longitude = 2.357895075822;
-
-        // Initialize the map
-        const map = L.map('map').setView([latitude, longitude], 13);
-
-        // Use CartoDB Positron for a clean, modern, monochromatic map style
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Example marker at the station's coordinates
-        const marker = L.marker([latitude, longitude]).addTo(map);
-        marker.bindPopup("<b>Mauroy - Cheminots</b>").openPopup();
-
+    
+        let map;
+    
+        function initMap() {
+            const mapElement = document.getElementById('map');
+            
+            // Ensure the map container has a proper height and width
+            if (!mapElement.offsetHeight || !mapElement.offsetWidth) {
+                console.error('Map container does not have valid dimensions.');
+                return;
+            }
+    
+            if (map) {
+                map.remove(); // Ensure no previous map instance exists
+            }
+    
+            map = L.map('map', {
+                center: [latitude, longitude],
+                zoom: 13,
+                touchZoom: false,
+                scrollWheelZoom: false,
+                doubleClickZoom: false,
+                dragging: false,
+                keyboard: false,
+                zoomControl: false,
+                zoomSnap: 0.25,
+                zoomDelta: 0.25
+            });
+    
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(map);
+    
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: ''
+            }).addTo(map);
+    
+            const marker = L.marker([latitude, longitude]).addTo(map);
+            marker.bindPopup("<b>Mauroy - Cheminots</b>").openPopup();
+    
+            // Ensure the map resizes correctly
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);  // Adjust this delay as needed
+        }
+    
+        function ensureMapRendered() {
+            if (!map) {
+                initMap();
+            } else {
+                map.invalidateSize();
+            }
+        }
+    
+        // Initialize map and other content on page load
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                initMap();
+                loadBikeData();
+            }, 500);  // Delay by 500ms to allow layout to stabilize
+    
+            // Periodically check and ensure map is rendered correctly
+            setInterval(ensureMapRendered, 1000);
+        });
+    
+        // Re-initialize map when window is resized
+        window.addEventListener("resize", () => {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
+    
         // On page load, make API request and parse the JSON
         window.addEventListener("load", () => {
             const url = "https://www.velib-metropole.fr/api/secured/searchStation";

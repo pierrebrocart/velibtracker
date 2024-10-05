@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Volontaires - Lecourbe - VelibTracker - Station Vélib</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Limit the maximum width of the content */
+        .container {
+            max-width: 1200px; /* Adjust as needed */
+            margin: 0 auto; /* Center the container */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Navigation bar (full width) -->
+    <header class="bg-blue-600 text-white p-4 shadow-md w-full">
+        <nav class="flex justify-between items-center container">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <h1 class="text-2xl font-bold mb-2 sm:mb-0"><a href="/">VelibTracker</a></h1>
+                <h2 class="text-xl font-semibold sm:ml-4">Volontaires - Lecourbe</h2>
+            </div>
+            <ul class="flex space-x-4">
+                <li><a href="mailto:velibtracker@pierrebrocart.com" class="hover:text-gray-200">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Content layout (grid layout with limited width) -->
+    <main class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Vélibs Disponibles</h2>
+            <table id="bikeTable" class="min-w-full bg-white border border-gray-200 rounded-lg text-left flex-1">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="py-2 px-4 border-b">Dock</th>
+                        <th class="py-2 px-4 border-b">Vélo N°</th>
+                        <th class="py-2 px-4 border-b">Type</th>
+                        <th class="py-2 px-4 border-b">Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex bg-white rounded-lg shadow-lg" style="height: 100%;">
+            <div id="map" class="w-full" style="height: 100%;"></div>
+        </div>
+
+        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Stations voisines</h2>
+            <table class="stations-voisines-table flex-1">
+                <thead>
+                    <tr>
+                        <th>Station</th>
+                        <th>Distance (km)</th>
+                        <th>🚲</th>
+                        <th>⚡</th>
+                        <th>🅿️</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td><a href="/stations/volontaires---vaugirard/index.html">Volontaires - Vaugirard</a></td>
+                        <td>0.3 km</td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/cambronne---mademoiselle/index.html">Cambronne - Mademoiselle</a></td>
+                        <td>0.3 km</td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/sevres---lecourbe/index.html">Sèvres - Lecourbe</a></td>
+                        <td>0.4 km</td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/paul-barruel---vaugirard/index.html">Paul Barruel - Vaugirard</a></td>
+                        <td>0.4 km</td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/suffren---perignon/index.html">Suffren - Pérignon</a></td>
+                        <td>0.4 km</td>
+                        <td>?</td>
+                        <td>?</td>
+                        <td>?</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Journée moyenne de la station</h2>
+            <canvas id="bikeChart" style="width: 100%; height: 100%;"></canvas>
+        </div>
+    </main>
+
+    <!-- Leaflet JS for map -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Set up the map with latitude and longitude
+const latitude = 48.84351378799;
+const longitude = 2.3065522313118;
+
+let map;
+
+function initMap() {
+    const mapElement = document.getElementById('map');
+    
+    // Ensure the map container has a proper height and width
+    if (!mapElement.offsetHeight || !mapElement.offsetWidth) {
+        console.error('Map container does not have valid dimensions.');
+        return;
+    }
+
+    if (map) {
+        map.remove(); // Ensure no previous map instance exists
+    }
+
+    map = L.map('map', {
+        center: [latitude, longitude],
+        zoom: 13,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        dragging: false,
+        keyboard: false,
+        zoomControl: false,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25
+    });
+
+    L.control.zoom({
+        position: 'topright'
+    }).addTo(map);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: ''
+    }).addTo(map);
+
+    const marker = L.marker([latitude, longitude]).addTo(map);
+    marker.bindPopup("<b>Volontaires - Lecourbe</b>").openPopup();
+
+    // Ensure the map resizes correctly
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);  // Adjust this delay as needed
+}
+
+function ensureMapRendered() {
+    if (!map) {
+        initMap();
+    } else {
+        map.invalidateSize();
+    }
+}
+
+// Initialize map and other content on page load
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        initMap();
+        loadBikeData();
+    }, 300);  // Delay by 500ms to allow layout to stabilize
+
+    // Periodically check and ensure map is rendered correctly
+    setInterval(ensureMapRendered, 1000);
+});
+
+// Re-initialize map when window is resized
+window.addEventListener("resize", () => {
+    if (map) {
+        map.invalidateSize();
+    }
+});
+        window.addEventListener("load", () => {
+    const url = "https://www.velib-metropole.fr/api/secured/searchStation";
+    const headers = {
+        "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
+        "authorization": "Basic bW9iaTokMnkkMTAkdzNVN3RaS29XVWJsZW1nUHBoQU9JZXdzejVGeWRralNHekdscFpId3drM1pSZUtKVTRDVy4=",
+        "Content-Type": "application/json; charset=utf-8"
+    };
+    const payload = {
+        "stationName": "Volontaires - Lecourbe",
+        "disponibility": "yes"
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data); // Print response data to console
+
+        const stationData = data[0];
+        const bikes = stationData.bikes;
+
+        // Sort bikes by bikeRate (stars) in descending order
+        const sortedBikes = bikes.sort((a, b) => b.bikeRate - a.bikeRate).slice(0, 12); // Limit to top 12
+
+        const tableBody = document.querySelector("#bikeTable tbody");
+
+        sortedBikes.forEach(bike => {
+            const row = document.createElement("tr");
+
+            const dockNumberCell = document.createElement("td");
+            dockNumberCell.className = "py-2 px-4 border-b";
+            dockNumberCell.textContent = bike.dockPosition;
+
+            const bikeNumberCell = document.createElement("td");
+            bikeNumberCell.className = "py-2 px-4 border-b";
+            bikeNumberCell.textContent = bike.bikeName;
+
+            const bikeTypeCell = document.createElement("td");
+            bikeTypeCell.className = "py-2 px-4 border-b";
+            bikeTypeCell.textContent = bike.bikeElectric === "yes" ? "⚡️" : "👟"; // Sneaker emoji for non-electric
+
+            const bikeRateCell = document.createElement("td");
+            bikeRateCell.className = "py-2 px-4 border-b";
+            bikeRateCell.textContent = "★".repeat(bike.bikeRate);
+
+            row.appendChild(dockNumberCell);
+            row.appendChild(bikeNumberCell);
+            row.appendChild(bikeTypeCell);
+            row.appendChild(bikeRateCell);
+
+            tableBody.appendChild(row);
+        });
+    })
+    .catch(error => {
+        console.error("Error fetching station data:", error);
+    });
+});
+    </script>
+
+</body>
+</html>
