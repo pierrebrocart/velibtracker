@@ -33,9 +33,36 @@
 
     <!-- Content layout (grid layout with limited width) -->
     <main class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">Vélibs Disponibles</h2>
-            <table id="bikeTable" class="min-w-full bg-white border border-gray-200 rounded-lg text-left flex-1">
+        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">        
+            <!-- No bikes message -->
+            <div id="noBikesMessage" class="bg-gray-200 text-gray-800 text-center py-10 rounded-lg" style="display: none;">
+                <p class="text-xl font-semibold">Aucun Vélib</p>
+            </div>
+        
+            <!-- Circles Container with padding -->
+            <div class="flex justify-between mb-4 px-4">
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-blue-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="electricBikeCount" class="text-2xl font-bold">0</span>
+                    </div>
+                    <span class="mt-1 text-sm">Éléctriques</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-green-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="mechanicalBikeCount" class="text-2xl font-bold">0</span>
+                    </div>
+                    <span class="mt-1 text-sm">Mécaniques</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-gray-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="freeDockCount" class="text-2xl font-bold">0</span>
+                    </div>
+                    <span class="mt-1 text-sm">Parking</span>
+                </div>
+            </div>
+        
+            <!-- Bike table -->
+            <table id="bikeTable" class="w-full bg-white border border-gray-200 rounded-lg text-left">
                 <thead>
                     <tr class="bg-gray-100">
                         <th class="py-2 px-4 border-b">Dock</th>
@@ -56,7 +83,7 @@
 
         <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
             <h2 class="text-xl font-semibold mb-4">Stations voisines</h2>
-            <table class="stations-voisines-table flex-1">
+            <table class="stations-voisines-table">
                 <thead>
                     <tr>
                         <th>Station</th>
@@ -71,41 +98,41 @@
                     <tr>
                         <td><a href="/stations/caire---dussoubs/index.html">Caire - Dussoubs</a></td>
                         <td>0.1 km</td>
-                        <td>?</td>
-                        <td>?</td>
-                        <td>?</td>
+                        <td id="mechanical-caire---dussoubs">?</td>
+                        <td id="electric-caire---dussoubs">?</td>
+                        <td id="parking-caire---dussoubs">?</td>
                     </tr>
                     
                     <tr>
                         <td><a href="/stations/mazagran---bonne-nouvelle/index.html">Mazagran - Bonne Nouvelle</a></td>
                         <td>0.2 km</td>
-                        <td>?</td>
-                        <td>?</td>
-                        <td>?</td>
+                        <td id="mechanical-mazagran---bonne-nouvelle">?</td>
+                        <td id="electric-mazagran---bonne-nouvelle">?</td>
+                        <td id="parking-mazagran---bonne-nouvelle">?</td>
                     </tr>
                     
                     <tr>
                         <td><a href="/stations/square-pierre-lazareff/index.html">Square Pierre Lazareff</a></td>
                         <td>0.2 km</td>
-                        <td>?</td>
-                        <td>?</td>
-                        <td>?</td>
+                        <td id="mechanical-square-pierre-lazareff">?</td>
+                        <td id="electric-square-pierre-lazareff">?</td>
+                        <td id="parking-square-pierre-lazareff">?</td>
                     </tr>
                     
                     <tr>
                         <td><a href="/stations/hauteville---bonne-nouvelle/index.html">Hauteville - Bonne Nouvelle</a></td>
                         <td>0.2 km</td>
-                        <td>?</td>
-                        <td>?</td>
-                        <td>?</td>
+                        <td id="mechanical-hauteville---bonne-nouvelle">?</td>
+                        <td id="electric-hauteville---bonne-nouvelle">?</td>
+                        <td id="parking-hauteville---bonne-nouvelle">?</td>
                     </tr>
                     
                     <tr>
                         <td><a href="/stations/jeuneurs---mulhouse/index.html">Jeûneurs - Mulhouse</a></td>
                         <td>0.2 km</td>
-                        <td>?</td>
-                        <td>?</td>
-                        <td>?</td>
+                        <td id="mechanical-jeuneurs---mulhouse">?</td>
+                        <td id="electric-jeuneurs---mulhouse">?</td>
+                        <td id="parking-jeuneurs---mulhouse">?</td>
                     </tr>
                     
                 </tbody>
@@ -118,6 +145,11 @@
             <canvas id="bikeChart" style="width: 100%; height: 100%;"></canvas>
         </div>
     </main>
+
+    <script type="application/json" id="nearest-stations-data">
+        [{"name": "Caire - Dussoubs", "link": "/stations/caire---dussoubs/index.html", "distance": "0.1", "id": "caire---dussoubs"}, {"name": "Mazagran - Bonne Nouvelle", "link": "/stations/mazagran---bonne-nouvelle/index.html", "distance": "0.2", "id": "mazagran---bonne-nouvelle"}, {"name": "Square Pierre Lazareff", "link": "/stations/square-pierre-lazareff/index.html", "distance": "0.2", "id": "square-pierre-lazareff"}, {"name": "Hauteville - Bonne Nouvelle", "link": "/stations/hauteville---bonne-nouvelle/index.html", "distance": "0.2", "id": "hauteville---bonne-nouvelle"}, {"name": "Jeûneurs - Mulhouse", "link": "/stations/jeuneurs---mulhouse/index.html", "distance": "0.2", "id": "jeuneurs---mulhouse"}]
+    </script>
+
 
     <!-- Leaflet JS for map -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -185,7 +217,6 @@ function ensureMapRendered() {
 window.addEventListener("load", () => {
     setTimeout(() => {
         initMap();
-        loadBikeData();
     }, 300);  // Delay by 500ms to allow layout to stabilize
 
     // Periodically check and ensure map is rendered correctly
@@ -198,7 +229,8 @@ window.addEventListener("resize", () => {
         map.invalidateSize();
     }
 });
-        window.addEventListener("load", () => {
+        // Load bike data for the current station
+function loadBikeData() {
     const url = "https://www.velib-metropole.fr/api/secured/searchStation";
     const headers = {
         "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
@@ -225,43 +257,135 @@ window.addEventListener("resize", () => {
         console.log(data); // Print response data to console
 
         const stationData = data[0];
-        const bikes = stationData.bikes;
+        
+        // Directly assign the bike counts
+        const nbMechanicalBike = stationData.nbBike || 0; // Fallback to 0 if undefined
+        const nbEbike = stationData.nbEbike || 0; // Fallback to 0 if undefined
+        const nbFreeEDock = stationData.nbFreeEDock || 0; // Fallback to 0 if undefined
 
-        // Sort bikes by bikeRate (stars) in descending order
-        const sortedBikes = bikes.sort((a, b) => b.bikeRate - a.bikeRate).slice(0, 12); // Limit to top 12
+        console.log(`Mechanical Bikes: ${nbMechanicalBike}, Electric Bikes: ${nbEbike}, Free Docks: ${nbFreeEDock}`);
+
+        // Update the circle indicators with the data
+        document.querySelector('#mechanicalBikeCount').textContent = nbMechanicalBike;
+        document.querySelector('#electricBikeCount').textContent = nbEbike;
+        document.querySelector('#freeDockCount').textContent = nbFreeEDock;
+
+        const bikes = stationData.bikes || []; // Fallback to empty array if bikes is undefined
 
         const tableBody = document.querySelector("#bikeTable tbody");
+        const noBikesMessage = document.getElementById("noBikesMessage");
+        
+        if (bikes.length === 0) {
+            // Clear the table and show the "Aucun Vélib" message
+            tableBody.innerHTML = ""; // Clear previous table rows
+            noBikesMessage.style.display = "flex"; // Show the message
+        } else {
+            noBikesMessage.style.display = "none"; // Hide the message
 
-        sortedBikes.forEach(bike => {
-            const row = document.createElement("tr");
+            // Sort bikes by stars
+            bikes.sort((a, b) => b.bikeRate - a.bikeRate);
 
-            const dockNumberCell = document.createElement("td");
-            dockNumberCell.className = "py-2 px-4 border-b";
-            dockNumberCell.textContent = bike.dockPosition;
+            // Limit to top 12 bikes
+            const topBikes = bikes.slice(0, 12);
 
-            const bikeNumberCell = document.createElement("td");
-            bikeNumberCell.className = "py-2 px-4 border-b";
-            bikeNumberCell.textContent = bike.bikeName;
+            // Clear previous table rows
+            tableBody.innerHTML = "";
 
-            const bikeTypeCell = document.createElement("td");
-            bikeTypeCell.className = "py-2 px-4 border-b";
-            bikeTypeCell.textContent = bike.bikeElectric === "yes" ? "⚡️" : "👟"; // Sneaker emoji for non-electric
+            // Populate the table with the top bikes
+            topBikes.forEach(bike => {
+                const row = document.createElement("tr");
 
-            const bikeRateCell = document.createElement("td");
-            bikeRateCell.className = "py-2 px-4 border-b";
-            bikeRateCell.textContent = "★".repeat(bike.bikeRate);
+                const dockNumberCell = document.createElement("td");
+                dockNumberCell.className = "py-2 px-4 border-b";
+                dockNumberCell.textContent = bike.dockPosition;
 
-            row.appendChild(dockNumberCell);
-            row.appendChild(bikeNumberCell);
-            row.appendChild(bikeTypeCell);
-            row.appendChild(bikeRateCell);
+                const bikeNumberCell = document.createElement("td");
+                bikeNumberCell.className = "py-2 px-4 border-b";
+                bikeNumberCell.textContent = bike.bikeName;
 
-            tableBody.appendChild(row);
-        });
+                const bikeTypeCell = document.createElement("td");
+                bikeTypeCell.className = "py-2 px-4 border-b";
+                bikeTypeCell.textContent = bike.bikeElectric === "yes" ? "⚡️" : "👟";
+
+                const bikeRateCell = document.createElement("td");
+                bikeRateCell.className = "py-2 px-4 border-b";
+                bikeRateCell.textContent = "★".repeat(bike.bikeRate);
+
+                row.appendChild(dockNumberCell);
+                row.appendChild(bikeNumberCell);
+                row.appendChild(bikeTypeCell);
+                row.appendChild(bikeRateCell);
+
+                tableBody.appendChild(row);
+            });
+        }
     })
     .catch(error => {
         console.error("Error fetching station data:", error);
     });
+}
+
+// Update data for nearest stations
+function updateNearestStations() {
+    // Safely parse the JSON string or use an empty array if parsing fails
+    let stations = [];
+    const dataElement = document.getElementById('nearest-stations-data');
+    
+    if (dataElement && dataElement.textContent) {
+        try {
+            stations = JSON.parse(dataElement.textContent);
+        } catch (error) {
+            console.error("Error parsing nearest stations JSON:", error);
+        }
+    } else {
+        console.warn("Nearest stations data element not found or empty");
+    }
+
+    stations.forEach(station => {
+        const url = "https://www.velib-metropole.fr/api/secured/searchStation";
+        const headers = {
+            "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
+            "authorization": "Basic bW9iaTokMnkkMTAkdzNVN3RaS29XVWJsZW1nUHBoQU9JZXdzejVGeWRralNHekdscFpId3drM1pSZUtKVTRDVy4=",
+            "Content-Type": "application/json; charset=utf-8"
+        };
+        const payload = {
+            "stationName": station.name,
+            "disponibility": "yes"
+        };
+
+        fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const stationData = data[0];
+            const mechanicalElement = document.getElementById(`mechanical-${station.id}`);
+            const electricElement = document.getElementById(`electric-${station.id}`);
+            const parkingElement = document.getElementById(`parking-${station.id}`);
+
+            // Update the placeholders with real data, if elements exist
+            if (mechanicalElement) mechanicalElement.textContent = stationData.nbBike || 0;
+            if (electricElement) electricElement.textContent = stationData.nbEbike || 0;
+            if (parkingElement) parkingElement.textContent = stationData.nbFreeEDock || 0;
+        })
+        .catch(error => {
+            console.error("Error fetching station data:", error);
+        });
+    });
+}
+
+
+// Call the functions after page load
+window.addEventListener("load", () => {
+    loadBikeData();
+    updateNearestStations();
 });
     </script>
 
