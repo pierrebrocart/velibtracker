@@ -6,8 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Beaumarchais - Saint-Gilles - VelibTracker - Station Vélib</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
         /* Limit the maximum width of the content */
         .container {
@@ -45,7 +46,7 @@
                     <div class="bg-light-blue-500 w-16 h-16 flex items-center justify-center rounded-full">
                         <span id="electricBikeCount" class="text-2xl font-bold">?</span>
                     </div>
-                    <span class="mt-1 text-sm">Éléctriques</span>
+                    <span class="mt-1 text-sm">Électriques</span>
                 </div>
                 <div class="flex flex-col items-center">
                     <div class="bg-light-green-500 w-16 h-16 flex items-center justify-center rounded-full">
@@ -78,7 +79,7 @@
         </div>
 
         <div class="flex bg-white rounded-lg shadow-lg" style="height: 100%;">
-            <div id="map" class="w-full" style="height: 100%;"></div>
+            <div id="map" class="w-full"></div>
         </div>
 
         <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
@@ -140,94 +141,105 @@
         </div>
 
 
-        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg">
+        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg flex flex-col"
+                data-non-electric-bikes='[37.33757961783439, 38.03977272727273, 37.607594936708864, 37.226190476190474, 36.30898876404494, 35.75268817204301, 35.779661016949156, 33.764044943820224, 33.23428571428571, 30.388571428571428, 29.46511627906977, 29.196319018404907, 28.458823529411763, 30.483443708609272, 30.49700598802395, 30.35443037974683, 32.857142857142854, 33.069182389937104, 31.982035928143713, 33.283018867924525, 36.08571428571429, 38.68181818181818, 37.51234567901235, 37.5748502994012]'
+                data-electric-bikes='[2.9554140127388533, 3.511363636363636, 2.3987341772151898, 2.488095238095238, 2.460674157303371, 2.6344086021505375, 2.384180790960452, 2.5, 2.64, 2.7257142857142855, 4.151162790697675, 5.730061349693251, 6.6647058823529415, 5.933774834437086, 5.850299401197605, 6.594936708860759, 6.372670807453416, 6.578616352201258, 6.053892215568863, 5.371069182389937, 5.635714285714286, 5.6022727272727275, 4.8765432098765435, 3.832335329341318]'
+                data-total-capacity='[51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51]'>
             <h2 class="text-xl font-semibold mb-4">Journée moyenne de la station</h2>
-            <canvas id="bikeChart" style="width: 100%; height: 100%;"></canvas>
+            <div class="flex-grow">
+                <canvas id="bikeChart"></canvas>
+            </div>
         </div>
+   
     </main>
 
     <script type="application/json" id="nearest-stations-data">
-        [{"name": "Bréguet - Sabin", "link": "/stations/breguet---sabin/", "distance": "0.2", "id": "breguet---sabin"}, {"name": "Saint-Gilles - Turenne", "link": "/stations/saint-gilles---turenne/", "distance": "0.2", "id": "saint-gilles---turenne"}, {"name": "Beaumarchais - Pas de la Mule", "link": "/stations/beaumarchais---pas-de-la-mule/", "distance": "0.3", "id": "beaumarchais---pas-de-la-mule"}, {"name": "Pelée - Alphonse Baudin", "link": "/stations/pelee---alphonse-baudin/", "distance": "0.3", "id": "pelee---alphonse-baudin"}, {"name": "Amelot - Saint-Sébastien", "link": "/stations/amelot---saint-sebastien/", "distance": "0.3", "id": "amelot---saint-sebastien"}]
+        [{"name": "Br\u00e9guet - Sabin", "link": "/stations/breguet---sabin/", "distance": "0.2", "id": "breguet---sabin"}, {"name": "Saint-Gilles - Turenne", "link": "/stations/saint-gilles---turenne/", "distance": "0.2", "id": "saint-gilles---turenne"}, {"name": "Beaumarchais - Pas de la Mule", "link": "/stations/beaumarchais---pas-de-la-mule/", "distance": "0.3", "id": "beaumarchais---pas-de-la-mule"}, {"name": "Pel\u00e9e - Alphonse Baudin", "link": "/stations/pelee---alphonse-baudin/", "distance": "0.3", "id": "pelee---alphonse-baudin"}, {"name": "Amelot - Saint-S\u00e9bastien", "link": "/stations/amelot---saint-sebastien/", "distance": "0.3", "id": "amelot---saint-sebastien"}]
     </script>
 
 
     <!-- Leaflet JS for map -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Set up the map with latitude and longitude
-const latitude = 48.8580378;
-const longitude = 2.3679352;
+        // map.js
 
-let map;
+document.addEventListener('DOMContentLoaded', function() {
+    // Latitude and longitude will be populated at build time
+    const latitude = 48.8580378;
+    const longitude = 2.3679352;
+    const stationName = "Beaumarchais - Saint-Gilles";
 
-function initMap() {
-    const mapElement = document.getElementById('map');
-    
-    // Ensure the map container has a proper height and width
-    if (!mapElement.offsetHeight || !mapElement.offsetWidth) {
-        console.error('Map container does not have valid dimensions.');
-        return;
-    }
+    // Get the map container
+    const mapContainer = document.getElementById('map');
 
-    if (map) {
-        map.remove(); // Ensure no previous map instance exists
-    }
-
-    map = L.map('map', {
+    // Initialize the map with modern styling
+    const map = L.map('map', {
         center: [latitude, longitude],
-        zoom: 13,
-        touchZoom: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
-        dragging: false,
-        keyboard: false,
+        zoom: 15,
         zoomControl: false,
-        zoomSnap: 0.25,
-        zoomDelta: 0.25
+        scrollWheelZoom: false,
+        dragging: !L.Browser.mobile, // Disable dragging on mobile
+        tap: !L.Browser.mobile // Disable tap handler on mobile
     });
 
+    // Add the modern styled tile layer (Stadia Maps Alidade Smooth)
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="http://openstreetmap.org">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Custom icon for the marker
+    const customIcon = L.icon({
+        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    // Add a marker for the station with custom icon
+    L.marker([latitude, longitude], {icon: customIcon})
+        .addTo(map)
+        .bindPopup(`<strong>${stationName}</strong>`)
+        .openPopup();
+
+    // Add zoom control to a custom position
     L.control.zoom({
-        position: 'topright'
+        position: 'bottomright'
     }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: ''
-    }).addTo(map);
-
-    const marker = L.marker([latitude, longitude]).addTo(map);
-    marker.bindPopup("<b>Beaumarchais - Saint-Gilles</b>").openPopup();
-
-    // Ensure the map resizes correctly
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);  // Adjust this delay as needed
-}
-
-function ensureMapRendered() {
-    if (!map) {
-        initMap();
-    } else {
+    // Function to resize the map
+    function resizeMap() {
+        const containerHeight = mapContainer.parentElement.clientHeight;
+        mapContainer.style.height = containerHeight + 'px';
         map.invalidateSize();
     }
-}
 
-// Initialize map and other content on page load
-window.addEventListener("load", () => {
-    setTimeout(() => {
-        initMap();
-    }, 300);  // Delay by 500ms to allow layout to stabilize
+    // Initial resize
+    resizeMap();
 
-    // Periodically check and ensure map is rendered correctly
-    setInterval(ensureMapRendered, 1000);
-});
+    // Use ResizeObserver to watch for changes in the map container's parent element
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            if (entry.target === mapContainer.parentElement) {
+                resizeMap();
+            }
+        }
+    });
 
-// Re-initialize map when window is resized
-window.addEventListener("resize", () => {
-    if (map) {
-        map.invalidateSize();
-    }
+    // Start observing the map container's parent element
+    resizeObserver.observe(mapContainer.parentElement);
+
+    // Also handle window resize events
+    window.addEventListener('resize', resizeMap);
+
+    // Periodically check and resize (as a fallback)
+    setInterval(resizeMap, 1000);
+
+    // Remove Leaflet attribution
+    map.attributionControl.setPrefix('');
 });
         // Load bike data for the current station
 function loadBikeData() {
@@ -386,6 +398,89 @@ function updateNearestStations() {
 window.addEventListener("load", () => {
     loadBikeData();
     updateNearestStations();
+});
+        // graph.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chartContainer = document.getElementById('chartContainer');
+    const canvas = document.getElementById('bikeChart');
+    const ctx = canvas.getContext('2d');
+
+    // Set a fixed height for the chart container
+    chartContainer.style.height = '400px'; // Adjust this value to match the height of the adjacent block
+
+    // Parse data from data attributes
+    const nonElectricBikes = JSON.parse(chartContainer.dataset.nonElectricBikes);
+    const electricBikes = JSON.parse(chartContainer.dataset.electricBikes);
+    const totalCapacity = JSON.parse(chartContainer.dataset.totalCapacity);
+
+    // Prepare data for Chart.js
+    const data = {
+        labels: Array.from({length: 24}, (_, i) => `${i}h`),
+        datasets: [
+            {
+                label: 'Vélos mécaniques',
+                data: nonElectricBikes,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Vélos électriques',
+                data: electricBikes,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Capacité totale',
+                data: totalCapacity,
+                type: 'line',
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                pointRadius: 0
+            }
+        ]
+    };
+
+    // Chart configuration
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Heure'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre de vélos'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false, // Remove title as it's already in the HTML
+                }
+            }
+        }
+    };
+
+    // Create the chart
+    new Chart(ctx, config);
 });
     </script>
 

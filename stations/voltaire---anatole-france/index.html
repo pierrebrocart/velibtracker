@@ -6,8 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Voltaire - Anatole France - VelibTracker - Station Vélib</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
         /* Limit the maximum width of the content */
         .container {
@@ -45,7 +46,7 @@
                     <div class="bg-light-blue-500 w-16 h-16 flex items-center justify-center rounded-full">
                         <span id="electricBikeCount" class="text-2xl font-bold">?</span>
                     </div>
-                    <span class="mt-1 text-sm">Éléctriques</span>
+                    <span class="mt-1 text-sm">Électriques</span>
                 </div>
                 <div class="flex flex-col items-center">
                     <div class="bg-light-green-500 w-16 h-16 flex items-center justify-center rounded-full">
@@ -78,7 +79,7 @@
         </div>
 
         <div class="flex bg-white rounded-lg shadow-lg" style="height: 100%;">
-            <div id="map" class="w-full" style="height: 100%;"></div>
+            <div id="map" class="w-full"></div>
         </div>
 
         <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
@@ -140,94 +141,105 @@
         </div>
 
 
-        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg">
+        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg flex flex-col"
+                data-non-electric-bikes='[3.707006369426752, 3.6420454545454546, 3.7278481012658222, 4.470238095238095, 4.320224719101123, 4.612903225806452, 4.745762711864407, 4.410112359550562, 3.7942857142857145, 5.925714285714286, 7.3313953488372094, 7.263803680981595, 7.3, 7.509933774834437, 7.029940119760479, 7.670886075949367, 6.614906832298137, 6.150943396226415, 3.37125748502994, 2.7358490566037736, 1.6571428571428573, 1.75, 2.135802469135802, 2.6646706586826348]'
+                data-electric-bikes='[4.407643312101911, 4.823863636363637, 5.582278481012659, 5.190476190476191, 6.01123595505618, 5.860215053763441, 6.1807909604519775, 6.337078651685394, 5.091428571428572, 6.662857142857143, 7.319767441860465, 6.656441717791411, 6.517647058823529, 5.847682119205298, 5.820359281437126, 5.531645569620253, 3.9254658385093166, 3.6666666666666665, 3.1497005988023954, 3.9056603773584904, 3.3214285714285716, 3.397727272727273, 3.6728395061728394, 4.083832335329341]'
+                data-total-capacity='[27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27]'>
             <h2 class="text-xl font-semibold mb-4">Journée moyenne de la station</h2>
-            <canvas id="bikeChart" style="width: 100%; height: 100%;"></canvas>
+            <div class="flex-grow">
+                <canvas id="bikeChart"></canvas>
+            </div>
         </div>
+   
     </main>
 
     <script type="application/json" id="nearest-stations-data">
-        [{"name": "Hôtel de Ville de Levallois Perret", "link": "/stations/hotel-de-ville-de-levallois-perret/", "distance": "0.4", "id": "hotel-de-ville-de-levallois-perret"}, {"name": "Anatole France - Louise Michel", "link": "/stations/anatole-france---louise-michel/", "distance": "0.5", "id": "anatole-france---louise-michel"}, {"name": "Paul Vaillant Couturier - Chaptal", "link": "/stations/paul-vaillant-couturier---chaptal/", "distance": "0.5", "id": "paul-vaillant-couturier---chaptal"}, {"name": "Bineau - Louise Michel", "link": "/stations/bineau---louise-michel/", "distance": "0.6", "id": "bineau---louise-michel"}, {"name": "Président Wilson - Jean Jaures", "link": "/stations/president-wilson---jean-jaures/", "distance": "0.6", "id": "president-wilson---jean-jaures"}]
+        [{"name": "H\u00f4tel de Ville de Levallois Perret", "link": "/stations/hotel-de-ville-de-levallois-perret/", "distance": "0.4", "id": "hotel-de-ville-de-levallois-perret"}, {"name": "Anatole France - Louise Michel", "link": "/stations/anatole-france---louise-michel/", "distance": "0.5", "id": "anatole-france---louise-michel"}, {"name": "Paul Vaillant Couturier - Chaptal", "link": "/stations/paul-vaillant-couturier---chaptal/", "distance": "0.5", "id": "paul-vaillant-couturier---chaptal"}, {"name": "Bineau - Louise Michel", "link": "/stations/bineau---louise-michel/", "distance": "0.6", "id": "bineau---louise-michel"}, {"name": "Pr\u00e9sident Wilson - Jean Jaures", "link": "/stations/president-wilson---jean-jaures/", "distance": "0.6", "id": "president-wilson---jean-jaures"}]
     </script>
 
 
     <!-- Leaflet JS for map -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Set up the map with latitude and longitude
-const latitude = 48.891999360256904;
-const longitude = 2.284262739121914;
+        // map.js
 
-let map;
+document.addEventListener('DOMContentLoaded', function() {
+    // Latitude and longitude will be populated at build time
+    const latitude = 48.891999360256904;
+    const longitude = 2.284262739121914;
+    const stationName = "Voltaire - Anatole France";
 
-function initMap() {
-    const mapElement = document.getElementById('map');
-    
-    // Ensure the map container has a proper height and width
-    if (!mapElement.offsetHeight || !mapElement.offsetWidth) {
-        console.error('Map container does not have valid dimensions.');
-        return;
-    }
+    // Get the map container
+    const mapContainer = document.getElementById('map');
 
-    if (map) {
-        map.remove(); // Ensure no previous map instance exists
-    }
-
-    map = L.map('map', {
+    // Initialize the map with modern styling
+    const map = L.map('map', {
         center: [latitude, longitude],
-        zoom: 13,
-        touchZoom: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
-        dragging: false,
-        keyboard: false,
+        zoom: 15,
         zoomControl: false,
-        zoomSnap: 0.25,
-        zoomDelta: 0.25
+        scrollWheelZoom: false,
+        dragging: !L.Browser.mobile, // Disable dragging on mobile
+        tap: !L.Browser.mobile // Disable tap handler on mobile
     });
 
+    // Add the modern styled tile layer (Stadia Maps Alidade Smooth)
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="http://openstreetmap.org">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Custom icon for the marker
+    const customIcon = L.icon({
+        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    // Add a marker for the station with custom icon
+    L.marker([latitude, longitude], {icon: customIcon})
+        .addTo(map)
+        .bindPopup(`<strong>${stationName}</strong>`)
+        .openPopup();
+
+    // Add zoom control to a custom position
     L.control.zoom({
-        position: 'topright'
+        position: 'bottomright'
     }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: ''
-    }).addTo(map);
-
-    const marker = L.marker([latitude, longitude]).addTo(map);
-    marker.bindPopup("<b>Voltaire - Anatole France</b>").openPopup();
-
-    // Ensure the map resizes correctly
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);  // Adjust this delay as needed
-}
-
-function ensureMapRendered() {
-    if (!map) {
-        initMap();
-    } else {
+    // Function to resize the map
+    function resizeMap() {
+        const containerHeight = mapContainer.parentElement.clientHeight;
+        mapContainer.style.height = containerHeight + 'px';
         map.invalidateSize();
     }
-}
 
-// Initialize map and other content on page load
-window.addEventListener("load", () => {
-    setTimeout(() => {
-        initMap();
-    }, 300);  // Delay by 500ms to allow layout to stabilize
+    // Initial resize
+    resizeMap();
 
-    // Periodically check and ensure map is rendered correctly
-    setInterval(ensureMapRendered, 1000);
-});
+    // Use ResizeObserver to watch for changes in the map container's parent element
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            if (entry.target === mapContainer.parentElement) {
+                resizeMap();
+            }
+        }
+    });
 
-// Re-initialize map when window is resized
-window.addEventListener("resize", () => {
-    if (map) {
-        map.invalidateSize();
-    }
+    // Start observing the map container's parent element
+    resizeObserver.observe(mapContainer.parentElement);
+
+    // Also handle window resize events
+    window.addEventListener('resize', resizeMap);
+
+    // Periodically check and resize (as a fallback)
+    setInterval(resizeMap, 1000);
+
+    // Remove Leaflet attribution
+    map.attributionControl.setPrefix('');
 });
         // Load bike data for the current station
 function loadBikeData() {
@@ -386,6 +398,89 @@ function updateNearestStations() {
 window.addEventListener("load", () => {
     loadBikeData();
     updateNearestStations();
+});
+        // graph.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chartContainer = document.getElementById('chartContainer');
+    const canvas = document.getElementById('bikeChart');
+    const ctx = canvas.getContext('2d');
+
+    // Set a fixed height for the chart container
+    chartContainer.style.height = '400px'; // Adjust this value to match the height of the adjacent block
+
+    // Parse data from data attributes
+    const nonElectricBikes = JSON.parse(chartContainer.dataset.nonElectricBikes);
+    const electricBikes = JSON.parse(chartContainer.dataset.electricBikes);
+    const totalCapacity = JSON.parse(chartContainer.dataset.totalCapacity);
+
+    // Prepare data for Chart.js
+    const data = {
+        labels: Array.from({length: 24}, (_, i) => `${i}h`),
+        datasets: [
+            {
+                label: 'Vélos mécaniques',
+                data: nonElectricBikes,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Vélos électriques',
+                data: electricBikes,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Capacité totale',
+                data: totalCapacity,
+                type: 'line',
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                pointRadius: 0
+            }
+        ]
+    };
+
+    // Chart configuration
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Heure'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre de vélos'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false, // Remove title as it's already in the HTML
+                }
+            }
+        }
+    };
+
+    // Create the chart
+    new Chart(ctx, config);
 });
     </script>
 

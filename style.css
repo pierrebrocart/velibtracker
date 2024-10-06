@@ -49,3 +49,40 @@ main.container {
 .stations-voisines-table a {
     text-decoration: underline;
 }
+
+.flex.bg-white.rounded-lg.shadow-lg {
+    height: 100%; /* Ensure the container takes full height */
+}
+#map {
+    height: 100%; /* Ensure the map takes full height of its container */
+    min-height: 400px; /* Set a minimum height to prevent collapse */
+}
+
+.flex.bg-white.rounded-lg.shadow-lg {
+    height: 100%;
+    overflow: hidden; /* Ensure the rounded corners are visible */
+}
+#map {
+    height: 100%;
+    min-height: 400px;
+    border-radius: 0.5rem; /* Rounded corners */
+}
+/* Round corners for Leaflet map container */
+.leaflet-container {
+    border-radius: 0.5rem;
+}
+
+#chartContainer {
+    height: 400px; /* Adjust this to match the height of the adjacent block */
+}
+#chartContainer .flex-grow {
+    position: relative;
+    height: calc(100% - 2rem); /* Subtracting the approximate height of the title */
+}
+#bikeChart {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
