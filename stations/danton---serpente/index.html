@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Danton - Serpente - VelibTracker - Station Vélib</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        /* Limit the maximum width of the content */
+        .container {
+            max-width: 1200px; /* Adjust as needed */
+            margin: 0 auto; /* Center the container */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Navigation bar (full width) -->
+    <header class="bg-blue-600 text-white p-4 shadow-md w-full">
+        <nav class="flex justify-between items-center container">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <h1 class="text-2xl font-bold mb-2 sm:mb-0"><a href="/">VelibTracker</a></h1>
+                <h2 class="text-xl font-semibold sm:ml-4">Danton - Serpente</h2>
+            </div>
+            <ul class="flex space-x-4">
+                <li><a href="mailto:velibtracker@pierrebrocart.com" class="hover:text-gray-200">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Content layout (grid layout with limited width) -->
+    <main class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">        
+            <!-- No bikes message -->
+            <div id="noBikesMessage" class="bg-gray-200 text-gray-800 text-center py-10 rounded-lg" style="display: none;">
+                <p class="text-xl font-semibold">Aucun Vélib</p>
+            </div>
+        
+            <!-- Circles Container with padding -->
+            <div class="flex justify-between mb-4 px-4">
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-blue-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="electricBikeCount" class="text-2xl font-bold">?</span>
+                    </div>
+                    <span class="mt-1 text-sm">Électriques</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-green-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="mechanicalBikeCount" class="text-2xl font-bold">?</span>
+                    </div>
+                    <span class="mt-1 text-sm">Mécaniques</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-light-gray-500 w-16 h-16 flex items-center justify-center rounded-full">
+                        <span id="freeDockCount" class="text-2xl font-bold">?</span>
+                    </div>
+                    <span class="mt-1 text-sm">Parking</span>
+                </div>
+            </div>
+        
+            <!-- Bike table -->
+            <table id="bikeTable" class="w-full bg-white border border-gray-200 rounded-lg text-left">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="py-2 px-4 border-b">Dock</th>
+                        <th class="py-2 px-4 border-b">Vélo N°</th>
+                        <th class="py-2 px-4 border-b">Type</th>
+                        <th class="py-2 px-4 border-b">Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex bg-white rounded-lg shadow-lg" style="height: 100%;">
+            <div id="map" class="w-full"></div>
+        </div>
+
+        <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Stations voisines</h2>
+            <table class="stations-voisines-table">
+                <thead>
+                    <tr>
+                        <th>Station</th>
+                        <th>Distance (km)</th>
+                        <th>🚲</th>
+                        <th>⚡</th>
+                        <th>🅿️</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td><a href="/stations/place-saint-andre-des-arts/">Place Saint-André des Arts</a></td>
+                        <td>0.1 km</td>
+                        <td id="mechanical-place-saint-andre-des-arts">?</td>
+                        <td id="electric-place-saint-andre-des-arts">?</td>
+                        <td id="parking-place-saint-andre-des-arts">?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/pierre-sarrazin---saint-michel/">Pierre Sarrazin - Saint-Michel</a></td>
+                        <td>0.2 km</td>
+                        <td id="mechanical-pierre-sarrazin---saint-michel">?</td>
+                        <td id="electric-pierre-sarrazin---saint-michel">?</td>
+                        <td id="parking-pierre-sarrazin---saint-michel">?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/harpe---saint-germain/">Harpe - Saint-Germain</a></td>
+                        <td>0.2 km</td>
+                        <td id="mechanical-harpe---saint-germain">?</td>
+                        <td id="electric-harpe---saint-germain">?</td>
+                        <td id="parking-harpe---saint-germain">?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/saint-severin---saint-michel/">Saint-Séverin - Saint-Michel</a></td>
+                        <td>0.2 km</td>
+                        <td id="mechanical-saint-severin---saint-michel">?</td>
+                        <td id="electric-saint-severin---saint-michel">?</td>
+                        <td id="parking-saint-severin---saint-michel">?</td>
+                    </tr>
+                    
+                    <tr>
+                        <td><a href="/stations/andre-mazet---saint-andre-des-arts/">André Mazet - Saint-André des Arts</a></td>
+                        <td>0.2 km</td>
+                        <td id="mechanical-andre-mazet---saint-andre-des-arts">?</td>
+                        <td id="electric-andre-mazet---saint-andre-des-arts">?</td>
+                        <td id="parking-andre-mazet---saint-andre-des-arts">?</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="chartContainer" class="bg-white p-4 rounded-lg shadow-lg flex flex-col"
+                data-non-electric-bikes='[7.828025477707007, 7.454545454545454, 6.386075949367089, 5.880952380952381, 4.713483146067416, 4.403225806451613, 4.830508474576271, 4.162921348314606, 5.171428571428572, 7.297142857142857, 6.680232558139535, 6.9079754601226995, 6.9, 7.403973509933775, 7.6467065868263475, 8.151898734177216, 9.186335403726709, 9.138364779874214, 9.724550898203592, 11.339622641509434, 12.414285714285716, 12.590909090909092, 12.15432098765432, 10.137724550898204]'
+                data-electric-bikes='[1.6305732484076434, 1.4204545454545454, 1.0506329113924051, 0.9523809523809524, 0.8314606741573034, 1.0053763440860215, 0.6836158192090396, 1.1179775280898876, 1.52, 2.16, 3.4011627906976742, 4.061349693251533, 4.141176470588236, 3.960264900662251, 4.37125748502994, 4.9113924050632916, 4.987577639751553, 4.345911949685535, 3.844311377245509, 4.182389937106918, 4.392857142857143, 4.306818181818182, 3.5987654320987654, 2.4730538922155687]'
+                data-total-capacity='[22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]'>
+            <h2 class="text-xl font-semibold mb-4">Journée moyenne de la station</h2>
+            <div class="flex-grow">
+                <canvas id="bikeChart"></canvas>
+            </div>
+        </div>
+   
+    </main>
+
+    <script type="application/json" id="nearest-stations-data">
+        [{"name": "Place Saint-Andr\u00e9 des Arts", "link": "/stations/place-saint-andre-des-arts/", "distance": "0.1", "id": "place-saint-andre-des-arts"}, {"name": "Pierre Sarrazin - Saint-Michel", "link": "/stations/pierre-sarrazin---saint-michel/", "distance": "0.2", "id": "pierre-sarrazin---saint-michel"}, {"name": "Harpe - Saint-Germain", "link": "/stations/harpe---saint-germain/", "distance": "0.2", "id": "harpe---saint-germain"}, {"name": "Saint-S\u00e9verin - Saint-Michel", "link": "/stations/saint-severin---saint-michel/", "distance": "0.2", "id": "saint-severin---saint-michel"}, {"name": "Andr\u00e9 Mazet - Saint-Andr\u00e9 des Arts", "link": "/stations/andre-mazet---saint-andre-des-arts/", "distance": "0.2", "id": "andre-mazet---saint-andre-des-arts"}]
+    </script>
+
+
+    <!-- Leaflet JS for map -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // map.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Latitude and longitude will be populated at build time
+    const latitude = 48.852297362582;
+    const longitude = 2.3414132371545;
+    const stationName = "Danton - Serpente";
+
+    // Get the map container
+    const mapContainer = document.getElementById('map');
+
+    // Initialize the map with modern styling
+    const map = L.map('map', {
+        center: [latitude, longitude],
+        zoom: 15,
+        zoomControl: false,
+        scrollWheelZoom: false,
+        dragging: !L.Browser.mobile, // Disable dragging on mobile
+        tap: !L.Browser.mobile // Disable tap handler on mobile
+    });
+
+    // Add the modern styled tile layer (Stadia Maps Alidade Smooth)
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="http://openstreetmap.org">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Custom icon for the marker
+    const customIcon = L.icon({
+        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    // Add a marker for the station with custom icon
+    L.marker([latitude, longitude], {icon: customIcon})
+        .addTo(map)
+        .bindPopup(`<strong>${stationName}</strong>`)
+        .openPopup();
+
+    // Add zoom control to a custom position
+    L.control.zoom({
+        position: 'bottomright'
+    }).addTo(map);
+
+    // Function to resize the map
+    function resizeMap() {
+        const containerHeight = mapContainer.parentElement.clientHeight;
+        mapContainer.style.height = containerHeight + 'px';
+        map.invalidateSize();
+    }
+
+    // Initial resize
+    resizeMap();
+
+    // Use ResizeObserver to watch for changes in the map container's parent element
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            if (entry.target === mapContainer.parentElement) {
+                resizeMap();
+            }
+        }
+    });
+
+    // Start observing the map container's parent element
+    resizeObserver.observe(mapContainer.parentElement);
+
+    // Also handle window resize events
+    window.addEventListener('resize', resizeMap);
+
+    // Periodically check and resize (as a fallback)
+    setInterval(resizeMap, 1000);
+
+    // Remove Leaflet attribution
+    map.attributionControl.setPrefix('');
+});
+        // Load bike data for the current station
+function loadBikeData() {
+    const url = "https://www.velib-metropole.fr/api/secured/searchStation";
+    const headers = {
+        "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
+        "authorization": "Basic bW9iaTokMnkkMTAkdzNVN3RaS29XVWJsZW1nUHBoQU9JZXdzejVGeWRralNHekdscFpId3drM1pSZUtKVTRDVy4=",
+        "Content-Type": "application/json; charset=utf-8"
+    };
+    const payload = {
+        "stationName": "Danton - Serpente",
+        "disponibility": "yes"
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data); // Print response data to console
+
+        const stationData = data[0];
+        
+        // Directly assign the bike counts
+        const nbMechanicalBike = stationData.nbBike || 0; // Fallback to 0 if undefined
+        const nbEbike = stationData.nbEbike || 0; // Fallback to 0 if undefined
+        const nbFreeEDock = stationData.nbFreeEDock || 0; // Fallback to 0 if undefined
+
+        console.log(`Mechanical Bikes: ${nbMechanicalBike}, Electric Bikes: ${nbEbike}, Free Docks: ${nbFreeEDock}`);
+
+        // Update the circle indicators with the data
+        document.querySelector('#mechanicalBikeCount').textContent = nbMechanicalBike;
+        document.querySelector('#electricBikeCount').textContent = nbEbike;
+        document.querySelector('#freeDockCount').textContent = nbFreeEDock;
+
+        const bikes = stationData.bikes || []; // Fallback to empty array if bikes is undefined
+
+        const tableBody = document.querySelector("#bikeTable tbody");
+        const noBikesMessage = document.getElementById("noBikesMessage");
+        
+        if (bikes.length === 0) {
+            // Clear the table and show the "Aucun Vélib" message
+            tableBody.innerHTML = ""; // Clear previous table rows
+            noBikesMessage.style.display = "flex"; // Show the message
+        } else {
+            noBikesMessage.style.display = "none"; // Hide the message
+
+            // Sort bikes by stars
+            bikes.sort((a, b) => b.bikeRate - a.bikeRate);
+
+            // Limit to top 12 bikes
+            const topBikes = bikes.slice(0, 12);
+
+            // Clear previous table rows
+            tableBody.innerHTML = "";
+
+            // Populate the table with the top bikes
+            topBikes.forEach(bike => {
+                const row = document.createElement("tr");
+
+                const dockNumberCell = document.createElement("td");
+                dockNumberCell.className = "py-2 px-4 border-b";
+                dockNumberCell.textContent = bike.dockPosition;
+
+                const bikeNumberCell = document.createElement("td");
+                bikeNumberCell.className = "py-2 px-4 border-b";
+                bikeNumberCell.textContent = bike.bikeName;
+
+                const bikeTypeCell = document.createElement("td");
+                bikeTypeCell.className = "py-2 px-4 border-b";
+                bikeTypeCell.textContent = bike.bikeElectric === "yes" ? "⚡️" : "👟";
+
+                const bikeRateCell = document.createElement("td");
+                bikeRateCell.className = "py-2 px-4 border-b";
+                bikeRateCell.textContent = "★".repeat(bike.bikeRate);
+
+                row.appendChild(dockNumberCell);
+                row.appendChild(bikeNumberCell);
+                row.appendChild(bikeTypeCell);
+                row.appendChild(bikeRateCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error fetching station data:", error);
+    });
+}
+
+// Update data for nearest stations
+function updateNearestStations() {
+    // Safely parse the JSON string or use an empty array if parsing fails
+    let stations = [];
+    const dataElement = document.getElementById('nearest-stations-data');
+    
+    if (dataElement && dataElement.textContent) {
+        try {
+            stations = JSON.parse(dataElement.textContent);
+        } catch (error) {
+            console.error("Error parsing nearest stations JSON:", error);
+        }
+    } else {
+        console.warn("Nearest stations data element not found or empty");
+    }
+
+    stations.forEach(station => {
+        const url = "https://www.velib-metropole.fr/api/secured/searchStation";
+        const headers = {
+            "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
+            "authorization": "Basic bW9iaTokMnkkMTAkdzNVN3RaS29XVWJsZW1nUHBoQU9JZXdzejVGeWRralNHekdscFpId3drM1pSZUtKVTRDVy4=",
+            "Content-Type": "application/json; charset=utf-8"
+        };
+        const payload = {
+            "stationName": station.name,
+            "disponibility": "yes"
+        };
+
+        fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const stationData = data[0];
+            const mechanicalElement = document.getElementById(`mechanical-${station.id}`);
+            const electricElement = document.getElementById(`electric-${station.id}`);
+            const parkingElement = document.getElementById(`parking-${station.id}`);
+
+            // Update the placeholders with real data, if elements exist
+            if (mechanicalElement) mechanicalElement.textContent = stationData.nbBike || 0;
+            if (electricElement) electricElement.textContent = stationData.nbEbike || 0;
+            if (parkingElement) parkingElement.textContent = stationData.nbFreeEDock || 0;
+        })
+        .catch(error => {
+            console.error("Error fetching station data:", error);
+        });
+    });
+}
+
+
+// Call the functions after page load
+window.addEventListener("load", () => {
+    loadBikeData();
+    updateNearestStations();
+});
+        // graph.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chartContainer = document.getElementById('chartContainer');
+    const canvas = document.getElementById('bikeChart');
+    const ctx = canvas.getContext('2d');
+
+    // Set a fixed height for the chart container
+    chartContainer.style.height = '400px'; // Adjust this value to match the height of the adjacent block
+
+    // Parse data from data attributes
+    const nonElectricBikes = JSON.parse(chartContainer.dataset.nonElectricBikes);
+    const electricBikes = JSON.parse(chartContainer.dataset.electricBikes);
+    const totalCapacity = JSON.parse(chartContainer.dataset.totalCapacity);
+
+    // Prepare data for Chart.js
+    const data = {
+        labels: Array.from({length: 24}, (_, i) => `${i}h`),
+        datasets: [
+            {
+                label: 'Vélos mécaniques',
+                data: nonElectricBikes,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Vélos électriques',
+                data: electricBikes,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Capacité totale',
+                data: totalCapacity,
+                type: 'line',
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                pointRadius: 0
+            }
+        ]
+    };
+
+    // Chart configuration
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Heure'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre de vélos'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false, // Remove title as it's already in the HTML
+                }
+            }
+        }
+    };
+
+    // Create the chart
+    new Chart(ctx, config);
+});
+    </script>
+
+</body>
+</html>
