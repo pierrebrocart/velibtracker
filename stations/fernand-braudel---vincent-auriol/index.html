@@ -7,6 +7,7 @@
     <title>Fernand Braudel - Vincent Auriol  - VelibTracker - Station Vélib</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/style.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
@@ -32,13 +33,20 @@
         </nav>
     </header>
 
+    <div id="errorBanner" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline" id="errorMessage"></span>
+        <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onclick="document.getElementById('errorBanner').classList.add('hidden');">
+                <title>Close</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+        </span>
+    </div>
+
     <!-- Content layout (grid layout with limited width) -->
     <main class="container mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex flex-col bg-white p-4 rounded-lg shadow-lg">        
             <!-- No bikes message -->
-            <div id="noBikesMessage" class="bg-gray-200 text-gray-800 text-center py-10 rounded-lg" style="display: none;">
-                <p class="text-xl font-semibold">Aucun Vélib</p>
-            </div>
         
             <!-- Circles Container with padding -->
             <div class="flex justify-between mb-4 px-4">
@@ -60,6 +68,10 @@
                     </div>
                     <span class="mt-1 text-sm">Parking</span>
                 </div>
+            </div>
+
+            <div id="noBikesMessage" class="bg-gray-200 text-gray-800 text-center py-10 rounded-lg" style="display: none;">
+                <p class="text-xl font-semibold text-center" style="text-align: center;">Aucun Vélib</p>
             </div>
         
             <!-- Bike table -->
@@ -88,7 +100,6 @@
                 <thead>
                     <tr>
                         <th>Station</th>
-                        <th>Distance (km)</th>
                         <th>🚲</th>
                         <th>⚡</th>
                         <th>🅿️</th>
@@ -97,40 +108,45 @@
                 <tbody>
                     
                     <tr>
-                        <td><a href="/stations/quai-de-la-gare---pont-de-bercy/">Quai de la Gare - Pont de Bercy</a></td>
-                        <td>0.2 km</td>
+                        <td>
+                            <a href="/stations/quai-de-la-gare---pont-de-bercy/">Quai de la Gare - Pont de Bercy</a>
+                        </td>
                         <td id="mechanical-quai-de-la-gare---pont-de-bercy">?</td>
                         <td id="electric-quai-de-la-gare---pont-de-bercy">?</td>
                         <td id="parking-quai-de-la-gare---pont-de-bercy">?</td>
                     </tr>
                     
                     <tr>
-                        <td><a href="/stations/vincent-auriol---louise-weiss/">Vincent Auriol - Louise Weiss</a></td>
-                        <td>0.3 km</td>
+                        <td>
+                            <a href="/stations/vincent-auriol---louise-weiss/">Vincent Auriol - Louise Weiss</a>
+                        </td>
                         <td id="mechanical-vincent-auriol---louise-weiss">?</td>
                         <td id="electric-vincent-auriol---louise-weiss">?</td>
                         <td id="parking-vincent-auriol---louise-weiss">?</td>
                     </tr>
                     
                     <tr>
-                        <td><a href="/stations/bnf---bibliotheque-nationale-de-france/">BNF - Bibliothèque Nationale de France</a></td>
-                        <td>0.3 km</td>
-                        <td id="mechanical-bnf---bibliotheque-nationale-de-france">?</td>
-                        <td id="electric-bnf---bibliotheque-nationale-de-france">?</td>
-                        <td id="parking-bnf---bibliotheque-nationale-de-france">?</td>
+                        <td>
+                            <a href="/stations/bnf---bibliotheque-nationale-de-france/">BNF - Bibliothèque Nationale de France</a>
+                        </td>
+                        <td id="mechanical-bnf---bibliothèque-nationale-de-france">?</td>
+                        <td id="electric-bnf---bibliothèque-nationale-de-france">?</td>
+                        <td id="parking-bnf---bibliothèque-nationale-de-france">?</td>
                     </tr>
                     
                     <tr>
-                        <td><a href="/stations/paul-klee---place-augusta-holmes/">Paul Klee - Place Augusta Holmes</a></td>
-                        <td>0.3 km</td>
+                        <td>
+                            <a href="/stations/paul-klee---place-augusta-holmes/">Paul Klee - Place Augusta Holmes</a>
+                        </td>
                         <td id="mechanical-paul-klee---place-augusta-holmes">?</td>
                         <td id="electric-paul-klee---place-augusta-holmes">?</td>
                         <td id="parking-paul-klee---place-augusta-holmes">?</td>
                     </tr>
                     
                     <tr>
-                        <td><a href="/stations/halle-freyssinet---parvis-alan-turing/">Halle Freyssinet - Parvis Alan Turing</a></td>
-                        <td>0.4 km</td>
+                        <td>
+                            <a href="/stations/halle-freyssinet---parvis-alan-turing/">Halle Freyssinet - Parvis Alan Turing</a>
+                        </td>
                         <td id="mechanical-halle-freyssinet---parvis-alan-turing">?</td>
                         <td id="electric-halle-freyssinet---parvis-alan-turing">?</td>
                         <td id="parking-halle-freyssinet---parvis-alan-turing">?</td>
@@ -154,7 +170,7 @@
     </main>
 
     <script type="application/json" id="nearest-stations-data">
-        [{"name": "Quai de la Gare - Pont de Bercy", "link": "/stations/quai-de-la-gare---pont-de-bercy/", "distance": "0.2", "id": "quai-de-la-gare---pont-de-bercy"}, {"name": "Vincent Auriol - Louise Weiss", "link": "/stations/vincent-auriol---louise-weiss/", "distance": "0.3", "id": "vincent-auriol---louise-weiss"}, {"name": "BNF - Biblioth\u00e8que Nationale de France", "link": "/stations/bnf---bibliotheque-nationale-de-france/", "distance": "0.3", "id": "bnf---bibliotheque-nationale-de-france"}, {"name": "Paul Klee - Place Augusta Holmes", "link": "/stations/paul-klee---place-augusta-holmes/", "distance": "0.3", "id": "paul-klee---place-augusta-holmes"}, {"name": "Halle Freyssinet - Parvis Alan Turing", "link": "/stations/halle-freyssinet---parvis-alan-turing/", "distance": "0.4", "id": "halle-freyssinet---parvis-alan-turing"}]
+        [{"name": "Quai de la Gare - Pont de Bercy", "latitude": 48.83730787972, "longitude": 2.3740861260598, "distance": 0.2}, {"name": "Vincent Auriol - Louise Weiss", "latitude": 48.834001935501, "longitude": 2.3703888058662, "distance": 0.3}, {"name": "BNF - Biblioth\u00e8que Nationale de France", "latitude": 48.8350268238, "longitude": 2.3760157451034, "distance": 0.3}, {"name": "Paul Klee - Place Augusta Holmes", "latitude": 48.838946417408025, "longitude": 2.3704235663952966, "distance": 0.3}, {"name": "Halle Freyssinet - Parvis Alan Turing", "latitude": 48.832846814471, "longitude": 2.3711421713233, "distance": 0.4}]
     </script>
 
 
@@ -169,6 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const latitude = 48.83637852318147;
     const longitude = 2.3723404482007027;
     const stationName = "Fernand Braudel - Vincent Auriol ";
+
+    // Parse nearest stations data
+    const nearestStationsData = JSON.parse(document.getElementById('nearest-stations-data').textContent);
 
     // Get the map container
     const mapContainer = document.getElementById('map');
@@ -189,8 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
         attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="http://openstreetmap.org">OpenStreetMap</a>'
     }).addTo(map);
 
-    // Custom icon for the marker
-    const customIcon = L.icon({
+    // Custom icon for the main station marker
+    const mainStationIcon = L.icon({
         iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
@@ -199,11 +218,34 @@ document.addEventListener('DOMContentLoaded', function() {
         shadowSize: [41, 41]
     });
 
-    // Add a marker for the station with custom icon
-    L.marker([latitude, longitude], {icon: customIcon})
+    // Custom icon for nearby stations
+    const nearbyStationIcon = L.icon({
+        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    // Add a marker for the main station with custom icon
+    const mainMarker = L.marker([latitude, longitude], {icon: mainStationIcon})
         .addTo(map)
         .bindPopup(`<strong>${stationName}</strong>`)
         .openPopup();
+
+    // Add markers for nearby stations
+    const nearbyMarkers = nearestStationsData.map(station => 
+        L.marker([station.latitude, station.longitude], {icon: nearbyStationIcon})
+            .addTo(map)
+            .bindPopup(`<strong>${station.name}</strong><br>Distance: ${station.distance} km`)
+    );
+
+    // Create a feature group with all markers
+    const group = L.featureGroup([mainMarker, ...nearbyMarkers]);
+
+    // Fit the map to show all markers
+    map.fitBounds(group.getBounds().pad(0.1));
 
     // Add zoom control to a custom position
     L.control.zoom({
@@ -241,8 +283,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remove Leaflet attribution
     map.attributionControl.setPrefix('');
 });
-        // Load bike data for the current station
+        // Function to show the error banner   
+function showErrorBanner(message) {
+    const errorBanner = document.getElementById('errorBanner');
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorBanner.classList.remove('hidden');
+}
+
+// Function to hide the error banner
+function hideErrorBanner() {
+    const errorBanner = document.getElementById('errorBanner');
+    errorBanner.classList.add('hidden');
+}
+
+// Load bike data for the current station
 function loadBikeData() {
+    console.log("Starting loadBikeData function");
+    hideErrorBanner(); // Hide any existing error message when starting a new request
     const url = "https://www.velib-metropole.fr/api/secured/searchStation";
     const headers = {
         "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
@@ -253,6 +311,8 @@ function loadBikeData() {
         "stationName": "Fernand Braudel - Vincent Auriol ",
         "disponibility": "yes"
     };
+
+    console.log("Fetching data for main station:", payload.stationName);
 
     fetch(url, {
         method: "POST",
@@ -266,44 +326,49 @@ function loadBikeData() {
         return response.json();
     })
     .then(data => {
-        console.log(data); // Print response data to console
+        console.log("Received data for main station:", data);
+
+        if (!data || data.length === 0) {
+            throw new Error('No data received from the API');
+        }
 
         const stationData = data[0];
         
         // Directly assign the bike counts
-        const nbMechanicalBike = stationData.nbBike || 0; // Fallback to 0 if undefined
-        const nbEbike = stationData.nbEbike || 0; // Fallback to 0 if undefined
-        const nbFreeEDock = stationData.nbFreeEDock || 0; // Fallback to 0 if undefined
+        const nbMechanicalBike = stationData.nbBike || 0;
+        const nbEbike = stationData.nbEbike || 0;
+        const nbFreeEDock = stationData.nbFreeEDock || 0;
 
-        console.log(`Mechanical Bikes: ${nbMechanicalBike}, Electric Bikes: ${nbEbike}, Free Docks: ${nbFreeEDock}`);
+        console.log(`Main station bike counts - Mechanical: ${nbMechanicalBike}, Electric: ${nbEbike}, Free Docks: ${nbFreeEDock}`);
 
         // Update the circle indicators with the data
         document.querySelector('#mechanicalBikeCount').textContent = nbMechanicalBike;
         document.querySelector('#electricBikeCount').textContent = nbEbike;
         document.querySelector('#freeDockCount').textContent = nbFreeEDock;
 
-        const bikes = stationData.bikes || []; // Fallback to empty array if bikes is undefined
+        const bikes = stationData.bikes || [];
+        console.log(`Number of bikes at main station: ${bikes.length}`);
 
-        const tableBody = document.querySelector("#bikeTable tbody");
+        const bikeTable = document.querySelector("#bikeTable");
         const noBikesMessage = document.getElementById("noBikesMessage");
         
         if (bikes.length === 0) {
-            // Clear the table and show the "Aucun Vélib" message
-            tableBody.innerHTML = ""; // Clear previous table rows
-            noBikesMessage.style.display = "flex"; // Show the message
+            console.log("No bikes available at main station");
+            bikeTable.style.display = "none";
+            noBikesMessage.style.display = "flex";
         } else {
-            noBikesMessage.style.display = "none"; // Hide the message
+            console.log("Updating bike table for main station");
+            bikeTable.style.display = "table";
+            noBikesMessage.style.display = "none";
 
-            // Sort bikes by stars
+            const tableBody = bikeTable.querySelector("tbody");
             bikes.sort((a, b) => b.bikeRate - a.bikeRate);
 
-            // Limit to top 12 bikes
-            const topBikes = bikes.slice(0, 12);
+            const maxBikesToShow = 12;
+            const topBikes = bikes.slice(0, maxBikesToShow);
 
-            // Clear previous table rows
             tableBody.innerHTML = "";
 
-            // Populate the table with the top bikes
             topBikes.forEach(bike => {
                 const row = document.createElement("tr");
 
@@ -329,31 +394,63 @@ function loadBikeData() {
                 row.appendChild(bikeRateCell);
 
                 tableBody.appendChild(row);
+                console.log(`Added bike to table: ${bike.bikeName}, Type: ${bike.bikeElectric === "yes" ? "Electric" : "Mechanical"}, Rate: ${bike.bikeRate}`);
             });
+
+            // Add truncation indicator if there are more bikes than shown
+            if (bikes.length > maxBikesToShow) {
+                const truncationRow = document.createElement("tr");
+                const truncationCell = document.createElement("td");
+                truncationCell.colSpan = 4; // Span all columns
+                truncationCell.className = "py-2 px-4 text-center";
+                truncationCell.innerHTML = '<span class="text-gray-400 text-2xl">• • •</span>';
+                truncationRow.appendChild(truncationCell);
+                tableBody.appendChild(truncationRow);
+                console.log("Added truncation indicator to bike table");
+            }
         }
     })
     .catch(error => {
-        console.error("Error fetching station data:", error);
+        console.error("Error in loadBikeData:", error);
+        showErrorBanner("Unable to load bike data. Please try again later.");
+        
+        // Reset the display to show no bikes available
+        const bikeTable = document.querySelector("#bikeTable");
+        const noBikesMessage = document.getElementById("noBikesMessage");
+        
+        bikeTable.style.display = "none";
+        noBikesMessage.style.display = "flex";
+        
+        // Reset the circle indicators
+        document.querySelector('#mechanicalBikeCount').textContent = "?";
+        document.querySelector('#electricBikeCount').textContent = "?";
+        document.querySelector('#freeDockCount').textContent = "?";
     });
 }
 
 // Update data for nearest stations
 function updateNearestStations() {
-    // Safely parse the JSON string or use an empty array if parsing fails
+    console.log("Starting updateNearestStations function");
     let stations = [];
     const dataElement = document.getElementById('nearest-stations-data');
     
     if (dataElement && dataElement.textContent) {
         try {
             stations = JSON.parse(dataElement.textContent);
+            console.log(`Parsed nearest stations data. Number of stations: ${stations.length}`);
         } catch (error) {
             console.error("Error parsing nearest stations JSON:", error);
+            showErrorBanner("Error loading nearby station data. Please try again later.");
+            return;
         }
     } else {
         console.warn("Nearest stations data element not found or empty");
+        showErrorBanner("Nearby station data not available. Please try again later.");
+        return;
     }
 
     stations.forEach(station => {
+        console.log(`Fetching data for nearest station: ${station.name}`);
         const url = "https://www.velib-metropole.fr/api/secured/searchStation";
         const headers = {
             "user-agent": "velib/7.5.1 (com.paris.velib; build:553; iOS 15.4.0) Alamofire/7.5.1",
@@ -377,25 +474,53 @@ function updateNearestStations() {
             return response.json();
         })
         .then(data => {
-            const stationData = data[0];
-            const mechanicalElement = document.getElementById(`mechanical-${station.id}`);
-            const electricElement = document.getElementById(`electric-${station.id}`);
-            const parkingElement = document.getElementById(`parking-${station.id}`);
+            console.log(`Received data for station ${station.name}:`, data);
+            if (data && data.length > 0) {
+                const stationData = data[0];
+                const stationId = station.name.replace(/\s+/g, '-').toLowerCase();
+                const mechanicalElement = document.getElementById(`mechanical-${stationId}`);
+                const electricElement = document.getElementById(`electric-${stationId}`);
+                const parkingElement = document.getElementById(`parking-${stationId}`);
 
-            // Update the placeholders with real data, if elements exist
-            if (mechanicalElement) mechanicalElement.textContent = stationData.nbBike || 0;
-            if (electricElement) electricElement.textContent = stationData.nbEbike || 0;
-            if (parkingElement) parkingElement.textContent = stationData.nbFreeEDock || 0;
+                console.log(`Updating table for station ${station.name}:`);
+                console.log(`  Mechanical bikes: ${stationData.nbBike || 0}`);
+                console.log(`  Electric bikes: ${stationData.nbEbike || 0}`);
+                console.log(`  Free docks: ${stationData.nbFreeEDock || 0}`);
+
+                if (mechanicalElement) {
+                    mechanicalElement.textContent = stationData.nbBike || 0;
+                    console.log(`  Updated mechanical bikes element`);
+                } else {
+                    console.warn(`  Mechanical bikes element not found for station ${station.name}`);
+                }
+
+                if (electricElement) {
+                    electricElement.textContent = stationData.nbEbike || 0;
+                    console.log(`  Updated electric bikes element`);
+                } else {
+                    console.warn(`  Electric bikes element not found for station ${station.name}`);
+                }
+
+                if (parkingElement) {
+                    parkingElement.textContent = stationData.nbFreeEDock || 0;
+                    console.log(`  Updated free docks element`);
+                } else {
+                    console.warn(`  Free docks element not found for station ${station.name}`);
+                }
+            } else {
+                console.warn(`No data received for station: ${station.name}`);
+            }
         })
         .catch(error => {
-            console.error("Error fetching station data:", error);
+            console.error(`Error fetching data for station ${station.name}:`, error);
+            showErrorBanner(`Unable to load data for nearby station ${station.name}. Please try again later.`);
         });
     });
 }
 
-
 // Call the functions after page load
 window.addEventListener("load", () => {
+    console.log("Page loaded, calling loadBikeData and updateNearestStations");
     loadBikeData();
     updateNearestStations();
 });
@@ -483,6 +608,8 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctx, config);
 });
     </script>
-
+    <script type="application/json" id="nearest-stations-data">
+        [{"name": "Quai de la Gare - Pont de Bercy", "latitude": 48.83730787972, "longitude": 2.3740861260598, "distance": 0.2}, {"name": "Vincent Auriol - Louise Weiss", "latitude": 48.834001935501, "longitude": 2.3703888058662, "distance": 0.3}, {"name": "BNF - Biblioth\u00e8que Nationale de France", "latitude": 48.8350268238, "longitude": 2.3760157451034, "distance": 0.3}, {"name": "Paul Klee - Place Augusta Holmes", "latitude": 48.838946417408025, "longitude": 2.3704235663952966, "distance": 0.3}, {"name": "Halle Freyssinet - Parvis Alan Turing", "latitude": 48.832846814471, "longitude": 2.3711421713233, "distance": 0.4}]
+    </script>
 </body>
 </html>
